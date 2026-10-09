@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2d7a3e">
+    <meta name="description" content="Anjani Market - Sistem Manajemen Toko Sembako">
+    
+    <title>Anjani Market</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Anjani Market">
+    
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="xlsx.mini.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🛒</span>
+                <div>
+                    <h1>Anjani Market</h1>
+                    <p class="tagline">Toko Sembako & Kebutuhan Harian</p>
+                </div>
+            </div>
+            <button id="btnInstall" class="btn-install hidden" title="Install Aplikasi">
+                📲 Install
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs">
+        <button class="nav-tab active" data-page="dashboard"><span class="nav-ico">🏠</span><span class="nav-label">Dashboard</span></button>
+        <button class="nav-tab" data-page="produk"><span class="nav-ico">📦</span><span class="nav-label">Produk</span></button>
+        <button class="nav-tab" data-page="stok"><span class="nav-ico">🔄</span><span class="nav-label">Stok</span></button>
+        <button class="nav-tab" data-page="penjualan"><span class="nav-ico">🛒</span><span class="nav-label">Penjualan</span></button>
+        <button class="nav-tab" data-page="laporan"><span class="nav-ico">📊</span><span class="nav-label">Laporan</span></button>
+        <button class="nav-tab" data-page="pelanggan"><span class="nav-ico">👤</span><span class="nav-label">Pelanggan</span></button>
+        <button class="nav-tab" data-page="setelan"><span class="nav-ico">⚙️</span><span class="nav-label">Setelan</span></button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <!-- DASHBOARD -->
+        <section id="page-dashboard" class="page active">
+            <h2 class="page-title">Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Produk</p>
+                        <h3 class="stat-value" id="statProduk">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-green">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Stok</p>
+                        <h3 class="stat-value" id="statStok">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-orange">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Penjualan Hari Ini</p>
+                        <h3 class="stat-value" id="statPenjualan">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-red">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Pendapatan Hari Ini</p>
+                        <h3 class="stat-value" id="statPendapatan">Rp 0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚠️ Stok Hampir Habis</h3>
+                <div id="lowStockList" class="low-stock-list">
+                    <p class="empty-state">Semua stok aman 👍</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUK -->
+        <section id="page-produk" class="page">
+            <div class="page-header">
+                <h2 class="page-title">Kelola Produk</h2>
+                <button class="btn btn-primary" onclick="openProductModal()">+ Tambah Produk</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchProduct" placeholder="🔍 Cari produk...">
+            </div>
+            <div id="productList" class="product-list"></div>
+        </section>
+
+        <!-- STOK -->
+        <section id="page-stok" class="page">
+            <h2 class="page-title">Manajemen Stok</h2>
+            <div class="stock-actions">
+                <button class="btn btn-success" onclick="openStockModal('masuk')">📥 Stok Masuk</button>
+                <button class="btn btn-warning" onclick="openStockModal('keluar')">📤 Stok Keluar</button>
+            </div>
+            <div class="card">
+                <h3>📜 Riwayat Perubahan Stok</h3>
+                <div id="stockHistory" class="stock-history"></div>
+            </div>
+        </section>
+
+        <!-- PENJUALAN -->
+        <section id="page-penjualan" class="page">
+            <h2 class="page-title">Catat Penjualan</h2>
+            <div class="sales-layout">
+                <div class="card">
+                    <h3>Pilih Produk</h3>
+                    <input type="text" id="searchSales" placeholder="🔍 Cari produk..." class="input-full">
+                    <div id="salesProductList" class="sales-product-list"></div>
+                </div>
+                <div class="card cart-card">
+                    <h3>🧾 Keranjang</h3>
+                    <div id="cartList" class="cart-list">
+                        <p class="empty-state">Keranjang kosong</p>
+                    </div>
+
+                    <div class="cart-fields">
+                        <div class="form-group">
+                            <label>Pelanggan</label>
+                            <div class="field-with-btn">
+                                <select id="saleCustomer">
+                                    <option value="">Pelanggan Umum</option>
+                                </select>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="openCustomerModal()">+</button>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Diskon</label>
+                                <input type="number" id="saleDiscount" value="0" min="0">
+                            </div>
+                            <div class="form-group form-group-tight">
+                                <label>Tipe</label>
+                                <select id="saleDiscountType">
+                                    <option value="rp">Rp</option>
+                                    <option value="percent">%</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Uang Diterima</label>
+                            <input type="number" id="salePaid" value="" min="0" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="cart-summary">
+                        <div class="cart-summary-row"><span>Subtotal</span><span id="cartSubtotal">Rp 0</span></div>
+                        <div class="cart-summary-row row-discount" id="discountRow"><span>Diskon</span><span id="cartDiscount">- Rp 0</span></div>
+                        <div class="cart-summary-row row-total"><span>Total</span><h3 id="cartTotal">Rp 0</h3></div>
+                        <div class="cart-summary-row row-change" id="changeRow"><span>Kembalian</span><span id="cartChange">Rp 0</span></div>
+                        <div class="cart-summary-row row-debt" id="debtRow"><span>Utang</span><span id="cartDebt">Rp 0</span></div>
+                    </div>
+
+                    <div class="cart-actions">
+                        <button class="btn btn-secondary" onclick="clearCart()">Batal</button>
+                        <button class="btn btn-warning" onclick="processSale('utang')">🧾 Utang</button>
+                        <button class="btn btn-primary" onclick="processSale('tunai')">💳 Bayar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAPORAN -->
+        <section id="page-laporan" class="page">
+            <h2 class="page-title">Laporan Penjualan</h2>
+            <div class="report-tabs">
+                <button class="report-tab active" data-period="harian">Harian</button>
+                <button class="report-tab" data-period="mingguan">Mingguan</button>
+                <button class="report-tab" data-period="bulanan">Bulanan</button>
+                <button class="report-tab" data-period="semua">Semua</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card stat-green">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Pendapatan</p>
+                        <h3 class="stat-value" id="reportRevenue">Rp 0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Total Transaksi</p>
+                        <h3 class="stat-value" id="reportTransactions">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card stat-red">
+                    <div class="stat-icon">🧾</div>
+                    <div class="stat-info">
+                        <p class="stat-label">Piutang Pelanggan</p>
+                        <h3 class="stat-value" id="reportDebt">Rp 0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="card profit-card">
+                <div class="profit-head">
+                    <h3>📈 Laba / Rugi</h3>
+                    <span class="profit-period" id="profitPeriod">Harian</span>
+                </div>
+                <div class="profit-rows">
+                    <div class="profit-row"><span>Omzet (setelah diskon)</span><b id="profitRevenue">Rp 0</b></div>
+                    <div class="profit-row"><span>Modal barang terjual</span><b id="profitCost">Rp 0</b></div>
+                    <div class="profit-row profit-total" id="profitTotalRow">
+                        <span>Laba Bersih</span><b id="profitNet">Rp 0</b>
+                    </div>
+                    <div class="profit-row"><span>Margin laba</span><b id="profitMargin">0%</b></div>
+                    <div class="profit-row"><span>Rata-rata per transaksi</span><b id="profitAvg">Rp 0</b></div>
+                    <div class="profit-row"><span>Barang terjual</span><b id="profitQty">0 barang</b></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>🏆 Produk Terlaris</h3>
+                <div id="bestSellers" class="best-sellers"></div>
+            </div>
+            <div class="card">
+                <h3>📋 Riwayat Transaksi</h3>
+                <div id="transactionHistory" class="transaction-history"></div>
+            </div>
+        </section>
+
+        <!-- PELANGGAN -->
+        <section id="page-pelanggan" class="page">
+            <div class="page-header">
+                <h2 class="page-title">Data Pelanggan</h2>
+                <button class="btn btn-primary" onclick="openCustomerModal()">+ Tambah Pelanggan</button>
+            </div>
+            <div id="customerList" class="customer-list"></div>
+        </section>
+
+        <!-- SETELAN -->
+        <section id="page-setelan" class="page">
+            <h2 class="page-title">Pengaturan</h2>
+
+            <div class="card">
+                <h3>💾 Backup Data</h3>
+                <p class="settings-desc">
+                    Simpan seluruh data toko (produk, foto, riwayat stok, transaksi, pelanggan, dan utang)
+                    ke satu file. Simpan di Google Drive, WhatsApp, atau flashdisk agar tidak hilang.
+                </p>
+                <div class="settings-actions">
+                    <button class="btn btn-primary" onclick="exportBackup()">⬇️ Unduh Backup (.json)</button>
+                    <button class="btn btn-secondary" onclick="exportTransactionsCsv()">📄 Ekspor CSV Transaksi</button>
+                    <button class="btn btn-secondary" onclick="exportExcel()">📊 Ekspor Excel (.xlsx)</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📥 Restore Data</h3>
+                <p class="settings-desc">
+                    Pilih file backup untuk <strong>menimpa seluruh data</strong> yang ada di aplikasi saat ini.
+                    Data lama akan diganti, jadi backup dulu sebelum melakukan ini.
+                </p>
+                <input type="file" id="backupFile" accept="application/json,.json" hidden onchange="handleBackupFile(event)">
+                <div class="settings-actions">
+                    <button class="btn btn-warning" onclick="document.getElementById('backupFile').click()">📂 Pilih File Backup</button>
+                </div>
+                <div id="restorePreview" class="restore-preview hidden"></div>
+            </div>
+
+            <div class="card">
+                <h3>ℹ️ Ringkasan Penyimpanan</h3>
+                <div id="storageInfo" class="storage-info"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL PRODUK -->
+    <div id="productModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="productModalTitle">Tambah Produk</h3>
+                <button class="modal-close" onclick="closeProductModal()">×</button>
+            </div>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="productId">
+                <div class="form-group">
+                    <label>Foto Produk</label>
+                    <div class="photo-picker">
+                        <div class="photo-preview" id="photoPreview"></div>
+                        <div class="photo-picker-side">
+                            <input type="file" id="productPhoto" accept="image/*" hidden onchange="handlePhotoPick(event)">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('productPhoto').click()">📷 Pilih Foto</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearPendingImage()">🗑️ Hapus Foto</button>
+                            <p class="photo-hint">Otomatis dikompres agar hemat penyimpanan.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Atau tempel link foto</label>
+                    <input type="text" id="productImageUrl" placeholder="https://..." oninput="usePhotoUrl()">
+                </div>
+                <div class="form-group">
+                    <label>Nama Barang</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="productCategory" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="Sembako">Sembako</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Makanan Ringan">Makanan Ringan</option>
+                        <option value="Mie Instan">Mie Instan</option>
+                        <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Harga Beli (Rp)</label>
+                        <input type="number" id="productBuyPrice" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Harga Jual (Rp)</label>
+                        <input type="number" id="productSellPrice" required min="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Stok Awal</label>
+                        <input type="number" id="productStock" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Batas Stok Minimum</label>
+                        <input type="number" id="productMinStock" value="5" min="0">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">💾 Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL STOK -->
+    <div id="stockModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="stockModalTitle">Stok Masuk</h3>
+                <button class="modal-close" onclick="closeStockModal()">×</button>
+            </div>
+            <form onsubmit="saveStockChange(event)">
+                <input type="hidden" id="stockType">
+                <div class="form-group">
+                    <label>Pilih Produk</label>
+                    <select id="stockProduct" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Jumlah</label>
+                    <input type="number" id="stockAmount" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Keterangan (opsional)</label>
+                    <input type="text" id="stockNote" placeholder="Contoh: Beli dari supplier">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">💾 Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PELANGGAN -->
+    <div id="customerModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Tambah Pelanggan</h3>
+                <button class="modal-close" onclick="closeCustomerModal()">×</button>
+            </div>
+            <form onsubmit="saveCustomer(event)">
+                <div class="form-group">
+                    <label>Nama Pelanggan</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Nomor HP</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">💾 Simpan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL BAYAR UTANG -->
+    <div id="paymentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💰 Bayar Utang</h3>
+                <button class="modal-close" onclick="closePaymentModal()">×</button>
+            </div>
+            <form onsubmit="saveCustomerPayment(event)">
+                <input type="hidden" id="paymentCustomerId">
+                <div class="form-group">
+                    <label>Pelanggan</label>
+                    <input type="text" id="paymentCustomerName" readonly>
+                </div>
+                <div class="debt-info" id="paymentDebtInfo"></div>
+                <div class="form-group">
+                    <label>Jumlah Bayar (Rp)</label>
+                    <input type="number" id="paymentAmount" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Keterangan (opsional)</label>
+                    <input type="text" id="paymentNote" placeholder="Contoh: bayar tunai">
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">💾 Simpan Pembayaran</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL RIWAYAT PELANGGAN -->
+    <div id="customerHistoryModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Riwayat Pelanggan</h3>
+                <button class="modal-close" onclick="closeCustomerHistory()">×</button>
+            </div>
+            <div class="history-head" id="customerHistoryHead"></div>
+            <div id="customerHistoryList" class="history-list"></div>
+        </div>
+    </div>
+
+    <!-- FLOATING WHATSAPP -->
+    <button id="waFab" class="wa-fab" type="button" aria-label="Tanya admin via WhatsApp" aria-expanded="false" aria-controls="waPanel">
+        <span class="wa-fab-ico">💬</span>
+        <span class="wa-fab-label">Tanya Admin</span>
+    </button>
+
+    <div id="waPanel" class="wa-panel hidden" role="dialog" aria-label="Tanya Admin WhatsApp">
+        <div class="wa-panel-head">
+            <div class="wa-avatar">🧺</div>
+            <div class="wa-panel-title">
+                <h4>Tanya Admin</h4>
+                <p>Anjani Market • balas cepat</p>
+            </div>
+            <button type="button" class="wa-close" onclick="toggleWaPanel(false)" aria-label="Tutup">×</button>
+        </div>
+
+        <a class="wa-direct" href="#" target="_blank" rel="noopener"
+           data-wa-msg="Halo kak, saya mau tanya-tanya produk di Anjani Market boleh?">
+            💬 Chat langsung via WhatsApp
+        </a>
+
+        <p class="wa-section">Pertanyaan cepat</p>
+        <div class="wa-quick">
+            <a href="#" target="_blank" rel="noopener" data-wa-msg="Halo kak, boleh tanya-tanya produk dulu?">🙋 Tanya produk</a>
+            <a href="#" target="_blank" rel="noopener" data-wa-msg="Kak, stok barang ini masih tersedia?">📦 Cek stok</a>
+            <a href="#" target="_blank" rel="noopener" data-wa-msg="Ada harga grosir atau diskon untuk pembelian banyak?">💰 Harga grosir</a>
+            <a href="#" target="_blank" rel="noopener" data-wa-msg="Bisa kirim atau antar ke alamat saya?">🚚 Pengiriman</a>
+        </div>
+
+        <form class="wa-custom" onsubmit="sendWaCustom(event)">
+            <input type="text" id="waCustomText" placeholder="Tulis pertanyaan..." autocomplete="off">
+            <button type="submit" class="btn btn-success btn-sm">Kirim</button>
+        </form>
+        <p class="wa-note">📱 Admin: 0823-2851-3831</p>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
